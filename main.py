@@ -1,3 +1,7 @@
+from filters.smooth_skin import apply_smooth_skin
+from filters.blush import apply_blush
+from filters.cat_ears import apply_cat_ears
+from filters.hearts import apply_hearts
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -39,6 +43,12 @@ def encode_image(img) -> str:
 async def apply_filter(request: FilterRequest):
     img = decode_image(request.image)
 
+    # Resize large frames before processing — speeds everything up
+    h, w = img.shape[:2]
+    if w > 640:
+        scale = 640 / w
+        img = cv2.resize(img, (640, int(h * scale)))
+
     if request.filter == "vhs":
         img = apply_vhs(img)
     elif request.filter == "glitch":
@@ -51,6 +61,14 @@ async def apply_filter(request: FilterRequest):
         img = apply_grain(img)
     elif request.filter == "chroma":
         img = apply_chroma(img)
+    elif request.filter == "smooth_skin":
+        img = apply_smooth_skin(img, intensity=0.6)
+    elif request.filter == "blush":
+        img = apply_blush(img, alpha=0.38)
+    elif request.filter == "cat_ears":
+        img = apply_cat_ears(img)
+    elif request.filter == "hearts":
+        img = apply_hearts(img)
 
     return {"image": encode_image(img)}
 
