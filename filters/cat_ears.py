@@ -154,7 +154,7 @@ def apply_cat_ears(img: np.ndarray) -> np.ndarray:
 
     # Vertically: bottom of the ears sprite sits at face top + 10 % of fh
     # The 10 % nudge down lets the ear bases overlap the hairline naturally.
-    y = fy - target_h + int(fh * 0.10)
+    y = fy - target_h + int(fh * 0.22)
 
     # ── Composite ─────────────────────────────────────────────────────────────
     result = _overlay_rgba(img, ears_scaled, x, y)

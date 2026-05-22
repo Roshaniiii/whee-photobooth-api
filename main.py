@@ -1,7 +1,3 @@
-from filters.smooth_skin import apply_smooth_skin
-from filters.blush import apply_blush
-from filters.cat_ears import apply_cat_ears
-from filters.hearts import apply_hearts
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -9,12 +5,9 @@ import base64
 import cv2
 import numpy as np
 
-from filters.vhs import apply_vhs
-from filters.glitch import apply_glitch
-from filters.y2k import apply_y2k
-from filters.crt import apply_crt
-from filters.grain import apply_grain
-from filters.chroma import apply_chroma
+from filters.blush    import apply_blush
+from filters.cat_ears import apply_cat_ears
+from filters.hearts   import apply_hearts
 
 app = FastAPI()
 
@@ -27,15 +20,16 @@ app.add_middleware(
 )
 
 class FilterRequest(BaseModel):
-    image: str
-    filter: str
+    image:   str
+    filter:  str
+    preview: bool = False
 
-def decode_image(b64_string: str):
-    image_data = base64.b64decode(b64_string)
+def decode_image(b64_string: str) -> np.ndarray:
+    image_data  = base64.b64decode(b64_string)
     image_array = np.frombuffer(image_data, np.uint8)
     return cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
-def encode_image(img) -> str:
+def encode_image(img: np.ndarray) -> str:
     _, buffer = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 85])
     return base64.b64encode(buffer).decode('utf-8')
 
@@ -43,31 +37,19 @@ def encode_image(img) -> str:
 async def apply_filter(request: FilterRequest):
     img = decode_image(request.image)
 
-    # Resize large frames before processing — speeds everything up
+    # Resize for performance
     h, w = img.shape[:2]
     if w > 640:
         scale = 640 / w
-        img = cv2.resize(img, (640, int(h * scale)))
+        img   = cv2.resize(img, (640, int(h * scale)))
 
-    if request.filter == "vhs":
-        img = apply_vhs(img)
-    elif request.filter == "glitch":
-        img = apply_glitch(img)
-    elif request.filter == "y2k":
-        img = apply_y2k(img)
-    elif request.filter == "crt":
-        img = apply_crt(img)
-    elif request.filter == "grain":
-        img = apply_grain(img)
-    elif request.filter == "chroma":
-        img = apply_chroma(img)
-    elif request.filter == "smooth_skin":
-        img = apply_smooth_skin(img, intensity=0.6)
-    elif request.filter == "blush":
-        img = apply_blush(img, alpha=0.38)
-    elif request.filter == "cat_ears":
+    f = request.filter
+
+    if f == "blush":
+        img = apply_blush(img, opacity=0.70 if request.preview else 0.85)
+    elif f == "cat_ears":
         img = apply_cat_ears(img)
-    elif request.filter == "hearts":
+    elif f == "hearts":
         img = apply_hearts(img)
 
     return {"image": encode_image(img)}

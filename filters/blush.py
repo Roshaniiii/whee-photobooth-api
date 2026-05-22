@@ -1,175 +1,207 @@
+import os
 import cv2
 import numpy as np
+from typing import Optional, Tuple
 
-# ── Cascade paths (bundled with opencv-python, no extra install) ──────────────
-_CASCADE_DATA = cv2.data.haarcascades
-_face_cascade = cv2.CascadeClassifier(_CASCADE_DATA + "haarcascade_frontalface_alt2.xml")
-_eye_cascade  = cv2.CascadeClassifier(_CASCADE_DATA + "haarcascade_eye.xml")
+# ── Cascade paths ─────────────────────────────────────────────────────────────
+_CASCADE_DIR: str = cv2.data.haarcascades
+_FACE_XML:    str = _CASCADE_DIR + "haarcascade_frontalface_alt2.xml"
+
+# ── Asset path ────────────────────────────────────────────────────────────────
+_ASSET_PATH: str = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "assets", "blush.png"
+)
+
+# ── Blush PNG intrinsics (727×519, pink mark centred at 361,261) ──────────────
+_SRC_W:        int = 727
+_SRC_H:        int = 519
+_SRC_ANCHOR_X: int = 361
+_SRC_ANCHOR_Y: int = 261
+
+# Module-level cache — loaded once, reused every frame
+_blush_bgra_cache: Optional[np.ndarray] = None
 
 
-# ── Colour: Soft rose-pink in BGR ─────────────────────────────────────────────
-# (219, 153, 189)  →  muted, warm rose — not hot-pink, not orange
-_BLUSH_BGR = np.array([189, 153, 219], dtype=np.float32)
-
-
-def _draw_cheek(canvas: np.ndarray, cx: int, cy: int, rx: int, ry: int,
-                color_bgr: np.ndarray, alpha: float) -> np.ndarray:
+# ─────────────────────────────────────────────────────────────────────────────
+def _load_blush_bgra() -> np.ndarray:
     """
-    Paint one soft elliptical blush patch onto `canvas`.
+    Load blush.png and return a BGRA uint8 array.
 
-    Uses a float32 overlay so the Gaussian feathering is smooth,
-    then blends back with addWeighted.
+    The PNG has a neutral grey background (~170,170,166 BGR) with no alpha.
+    Alpha is synthesised from the HSV hue+saturation of the pink blush mark:
+      • Pink hue 125-178 (OpenCV 0-180 scale) AND saturation > 40 → opaque
+      • Grey background (low saturation)                          → transparent
+      • Silhouette edges softened with a Gaussian blur.
+    Cached after first call — file I/O happens only once.
+    """
+    global _blush_bgra_cache
+    if _blush_bgra_cache is not None:
+        return _blush_bgra_cache
+
+    bgr: np.ndarray = cv2.imread(_ASSET_PATH, cv2.IMREAD_COLOR)
+    if bgr is None:
+        raise FileNotFoundError(
+            "blush.png not found at: {}\n"
+            "Place the file at  assets/blush.png  relative to your project root."
+            .format(_ASSET_PATH)
+        )
+
+    hsv: np.ndarray = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+    hue: np.ndarray = hsv[:, :, 0].astype(np.float32)   # 0–180
+    sat: np.ndarray = hsv[:, :, 1].astype(np.float32)   # 0–255
+
+    # Soft hue window 125-178 with 5-px ramps on each side
+    hue_mask: np.ndarray = (
+        np.clip((hue - 125.0) / 5.0, 0.0, 1.0) *
+        np.clip((178.0 - hue) / 5.0, 0.0, 1.0)
+    )
+    # Saturation ramp: transparent below 40, opaque above 100
+    sat_mask: np.ndarray = np.clip((sat - 40.0) / 60.0, 0.0, 1.0)
+
+    alpha_f: np.ndarray = hue_mask * sat_mask * 255.0
+    alpha:   np.ndarray = np.clip(alpha_f, 0.0, 255.0).astype(np.uint8)
+    alpha = cv2.GaussianBlur(alpha, (7, 7), sigmaX=2.5)
+
+    b, g, r = cv2.split(bgr)
+    _blush_bgra_cache = cv2.merge([b, g, r, alpha])
+    return _blush_bgra_cache
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+def _overlay_bgra(
+    base:    np.ndarray,
+    overlay: np.ndarray,
+    x:       int,
+    y:       int,
+    opacity: float = 1.0,
+) -> np.ndarray:
+    """
+    Alpha-composite a BGRA overlay onto a BGR base at top-left (x, y).
+    Out-of-bounds positions are handled gracefully.
+    """
+    result: np.ndarray = base.copy()
+
+    oh: int = overlay.shape[0]
+    ow: int = overlay.shape[1]
+    fh: int = base.shape[0]
+    fw: int = base.shape[1]
+
+    dst_x1: int = max(x, 0)
+    dst_y1: int = max(y, 0)
+    dst_x2: int = min(x + ow, fw)
+    dst_y2: int = min(y + oh, fh)
+
+    if dst_x2 <= dst_x1 or dst_y2 <= dst_y1:
+        return result
+
+    src_x1: int = dst_x1 - x
+    src_y1: int = dst_y1 - y
+    src_x2: int = src_x1 + (dst_x2 - dst_x1)
+    src_y2: int = src_y1 + (dst_y2 - dst_y1)
+
+    roi:   np.ndarray = result[dst_y1:dst_y2, dst_x1:dst_x2].astype(np.float32)
+    patch: np.ndarray = overlay[src_y1:src_y2, src_x1:src_x2]
+
+    patch_bgr: np.ndarray = patch[:, :, :3].astype(np.float32)
+    patch_a:   np.ndarray = patch[:, :, 3:4].astype(np.float32) / 255.0 * float(opacity)
+
+    blended: np.ndarray = roi * (1.0 - patch_a) + patch_bgr * patch_a
+    result[dst_y1:dst_y2, dst_x1:dst_x2] = np.clip(blended, 0.0, 255.0).astype(np.uint8)
+    return result
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+def _get_cheek_centres(
+    fx: int, fy: int, fw: int, fh: int,
+) -> Tuple[Tuple[int, int], Tuple[int, int], float]:
+    """
+    Compute left/right cheek centres using pure face geometry.
+
+    No eye detection — consistent positioning with/without glasses.
+    Anatomical cheek position:
+      • 58% down face height  (below eye line, above mouth)
+      • 22% inward from each face edge (on the cheekbone)
+    Returns ((l_cx, l_cy), (r_cx, r_cy), scale).
+    """
+    l_cx: int = fx + int(fw * 0.22)
+    r_cx: int = fx + int(fw * 0.78)
+    l_cy: int = fy + int(fh * 0.58)
+    r_cy: int = l_cy
+
+    scale: float = float(fw) * 0.38 / float(_SRC_W)
+    return (l_cx, l_cy), (r_cx, r_cy), scale
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+def apply_blush(img: np.ndarray, opacity: float = 0.85) -> np.ndarray:
+    """
+    Blush overlay filter.
+
+    Detects the largest face, anchors a scaled blush PNG to each cheek
+    using eye positions (falls back to geometry when eyes aren't found),
+    then alpha-composites both marks onto the frame.
 
     Args:
-        canvas   : BGR uint8 image to draw on (modified in-place copy)
-        cx, cy   : ellipse centre (pixels)
-        rx, ry   : semi-axes (pixels)  — rx is horizontal, ry vertical
-        color_bgr: BGR float32 colour
-        alpha    : peak opacity (0.0–1.0)
-    Returns:
-        Blended BGR uint8 image.
-    """
-    h, w = canvas.shape[:2]
-
-    # --- soft ellipse mask ---------------------------------------------------
-    # Build a float32 mask the same size as the image, draw a filled white
-    # ellipse, then Gaussian-blur it heavily so edges dissolve naturally.
-    mask = np.zeros((h, w), dtype=np.float32)
-    cv2.ellipse(mask,
-                center=(cx, cy),
-                axes=(rx, ry),
-                angle=0,
-                startAngle=0,
-                endAngle=360,
-                color=1.0,
-                thickness=-1)
-
-    # Blur radius scales with the ellipse size so feathering always looks right.
-    blur_k = int(max(rx, ry) * 1.6) | 1   # must be odd
-    blur_k = max(blur_k, 21)
-    mask = cv2.GaussianBlur(mask, (blur_k, blur_k), sigmaX=blur_k / 3)
-
-    # Scale mask to peak alpha
-    mask = np.clip(mask * alpha, 0.0, 1.0)
-
-    # --- colour overlay -------------------------------------------------------
-    overlay = np.zeros_like(canvas, dtype=np.float32)
-    overlay[:] = color_bgr
-
-    base    = canvas.astype(np.float32)
-    mask3   = mask[:, :, np.newaxis]           # broadcast over BGR channels
-    blended = base * (1.0 - mask3) + overlay * mask3
-    return np.clip(blended, 0, 255).astype(np.uint8)
-
-
-def _cheek_centres_from_eyes(face_box, eyes, img_w: int):
-    """
-    Derive left/right cheek centres from detected eye positions.
-
-    Cheek is placed:
-      - horizontally: aligned with the outer edge of each eye
-      - vertically  : ~1.0× eye-height below the eye's bottom edge
-
-    Falls back to a face-geometry estimate when eyes aren't detected.
-    """
-    fx, fy, fw, fh = face_box
-
-    if len(eyes) >= 2:
-        # Sort eyes left-to-right (relative to image, not face)
-        eyes_sorted = sorted(eyes, key=lambda e: e[0])
-        ex0, ey0, ew0, eh0 = eyes_sorted[0]   # left eye (image-left)
-        ex1, ey1, ew1, eh1 = eyes_sorted[1]   # right eye
-
-        # Absolute pixel coords (eyes are relative to face ROI)
-        l_cx = fx + ex0 + ew0 // 2            # left eye centre-x
-        l_cy = fy + ey0 + eh0 + int(eh0 * 1.0)  # below left eye
-
-        r_cx = fx + ex1 + ew1 // 2
-        r_cy = fy + ey1 + eh1 + int(eh1 * 1.0)
-
-        # Spread cheeks outward a little from eye centres
-        spread = int(fw * 0.10)
-        l_cx -= spread
-        r_cx += spread
-
-        rx = int(fw * 0.18)   # horizontal radius  ≈ 18 % of face width
-        ry = int(fh * 0.13)   # vertical radius    ≈ 13 % of face height
-
-    else:
-        # Fallback: pure geometry from face box
-        # Cheeks sit at ~62 % down, 22 % inward from each side
-        l_cx = fx + int(fw * 0.22)
-        r_cx = fx + int(fw * 0.78)
-        cy   = fy + int(fh * 0.62)
-        l_cy = r_cy = cy
-        rx = int(fw * 0.17)
-        ry = int(fh * 0.12)
-
-    return (l_cx, l_cy), (r_cx, r_cy), rx, ry
-
-
-def apply_blush(img: np.ndarray, alpha: float = 0.38) -> np.ndarray:
-    """
-    Soft & Natural blush filter.
-
-    Detects the face with Haar cascade, uses eye positions to anchor
-    rose-pink ellipses precisely on each cheek, then feathers them
-    with a heavy Gaussian blur so the result looks like real skin flush.
-
-    Args:
-        img   : BGR uint8 image
-        alpha : peak blush opacity — 0.38 gives a natural, visible flush
-                without looking painted.  Range 0.0–1.0.
+        img     : BGR uint8 image (H x W x 3)
+        opacity : blush strength 0.0-1.0 (default 0.85)
 
     Returns:
-        BGR uint8 image with blush applied.
-        If no face is detected the original image is returned unchanged.
+        BGR uint8 image with blush on both cheeks,
+        or a copy of the original if no face is detected.
     """
-    result = img.copy()
-    gray   = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    face_cascade: cv2.CascadeClassifier = cv2.CascadeClassifier(_FACE_XML)
 
-    # ── Face detection ────────────────────────────────────────────────────────
-    faces = _face_cascade.detectMultiScale(
+    gray: np.ndarray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # detectMultiScale returns () when nothing found
+    raw_faces = face_cascade.detectMultiScale(
         gray,
         scaleFactor=1.1,
         minNeighbors=5,
         minSize=(80, 80),
-        flags=cv2.CASCADE_SCALE_IMAGE
+        flags=cv2.CASCADE_SCALE_IMAGE,
     )
 
-    if len(faces) == 0:
-        return result   # no face found — return untouched
+    if not isinstance(raw_faces, np.ndarray) or len(raw_faces) == 0:
+        return img.copy()
 
-    # Use the largest detected face (most prominent in frame)
-    face_box = max(faces, key=lambda f: f[2] * f[3])
-    fx, fy, fw, fh = face_box
+    faces_list: list = raw_faces.tolist()
+    face_box:   list = max(faces_list, key=lambda f: f[2] * f[3])
 
-    # ── Eye detection inside face ROI ─────────────────────────────────────────
-    # Restrict search to the upper 55 % of the face (eyes don't live lower).
-    eye_roi_gray = gray[fy: fy + int(fh * 0.55), fx: fx + fw]
-    eyes = _eye_cascade.detectMultiScale(
-        eye_roi_gray,
-        scaleFactor=1.1,
-        minNeighbors=10,
-        minSize=(20, 20)
+    fx: int = int(face_box[0])
+    fy: int = int(face_box[1])
+    fw: int = int(face_box[2])
+    fh: int = int(face_box[3])
+
+    # Pure geometry — no eye detection needed
+    (l_cx, l_cy), (r_cx, r_cy), scale = _get_cheek_centres(fx, fy, fw, fh)
+
+    # ── Load, scale, anchor ───────────────────────────────────────────────────
+    blush_bgra:   np.ndarray = _load_blush_bgra()
+    new_w:        int        = max(4, int(_SRC_W * scale))
+    new_h:        int        = max(4, int(_SRC_H * scale))
+    blush_scaled: np.ndarray = cv2.resize(
+        blush_bgra, (new_w, new_h), interpolation=cv2.INTER_AREA
     )
 
-    # ── Compute cheek positions ───────────────────────────────────────────────
-    (l_cx, l_cy), (r_cx, r_cy), rx, ry = _cheek_centres_from_eyes(
-        face_box, eyes, img.shape[1]
+    anchor_x: int = int(_SRC_ANCHOR_X / _SRC_W * new_w)
+    anchor_y: int = int(_SRC_ANCHOR_Y / _SRC_H * new_h)
+
+    # ── Left cheek ────────────────────────────────────────────────────────────
+    result: np.ndarray = _overlay_bgra(
+        img, blush_scaled,
+        l_cx - anchor_x,
+        l_cy - anchor_y,
+        opacity,
     )
 
-    # ── Paint blush on both cheeks ────────────────────────────────────────────
-    result = _draw_cheek(result, l_cx, l_cy, rx, ry, _BLUSH_BGR, alpha)
-    result = _draw_cheek(result, r_cx, r_cy, rx, ry, _BLUSH_BGR, alpha)
-
-    # ── Subtle warmth boost in LAB to tie blush into skin tone ───────────────
-    # Nudge the A channel (green↔red axis) very slightly toward red/warm.
-    # This stops the pink from looking like a sticker on grey skin.
-    lab = cv2.cvtColor(result, cv2.COLOR_BGR2LAB).astype(np.float32)
-    l, a, b = cv2.split(lab)
-    a = np.clip(a + 2.5, 0, 255)          # +2.5 on A = barely perceptible warmth
-    lab_out = cv2.merge([l, a, b]).astype(np.uint8)
-    result  = cv2.cvtColor(lab_out, cv2.COLOR_LAB2BGR)
+    # ── Right cheek (horizontally flipped) ───────────────────────────────────
+    blush_flipped: np.ndarray = cv2.flip(blush_scaled, 1)
+    result = _overlay_bgra(
+        result, blush_flipped,
+        r_cx - (new_w - anchor_x),
+        r_cy - anchor_y,
+        opacity,
+    )
 
     return result

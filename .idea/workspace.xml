@@ -5,13 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="33f043e4-9a32-42a2-9f25-f2e645a5e768" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/assets/cat_ears.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/filters/blush.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/filters/cat_ears.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/filters/hearts.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/filters/smooth_skin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/blush.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/y2k-photobooth-api.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/y2k-photobooth-api.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/cat_ears.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/cat_ears.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/filters/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/filters/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/filters/blush.py" beforeDir="false" afterPath="$PROJECT_DIR$/filters/blush.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/filters/cat_ears.py" beforeDir="false" afterPath="$PROJECT_DIR$/filters/cat_ears.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/filters/smooth_skin.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -29,6 +29,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 1,
   &quot;fromUser&quot;: false
@@ -38,25 +41,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/Users/rg076/PycharmProjects/PythonProject/y2k-photobooth-api/assets",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/rg076/PycharmProjects/PythonProject/y2k-photobooth-api/assets&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\rg076\PycharmProjects\PythonProject\y2k-photobooth-api\assets" />
@@ -78,7 +81,10 @@
       <updated>1779003914054</updated>
       <workItem from="1779003915136" duration="4672000" />
       <workItem from="1779127212610" duration="568000" />
-      <workItem from="1779273082511" duration="8886000" />
+      <workItem from="1779273082511" duration="11190000" />
+      <workItem from="1779376979918" duration="2319000" />
+      <workItem from="1779456367248" duration="2165000" />
+      <workItem from="1779477409585" duration="6129000" />
     </task>
     <servers />
   </component>
