@@ -17,40 +17,46 @@ _SRC_H:        int = 395
 _SRC_ANCHOR_X: int = 198
 _SRC_ANCHOR_Y: int = 200
 
-# ── Recolor targets (BGR) — applied to the star mask ─────────────────────────
-# Reference image shows: blue, green, orange, purple, pink, red stars
+# ── Recolor targets (BGR) — bright vivid colours matching reference ───────────
 _STAR_COLOURS: List[Tuple[int, int, int]] = [
-    (219, 107,  73),   # Blue      #4B6BDB
-    ( 60, 160,  60),   # Green     #3CA03C
-    ( 30, 140, 220),   # Orange    #DC8C1E
-    (180,  80, 140),   # Purple    #8C50B4
-    (140, 105, 220),   # Pink      #DC69 8C
-    ( 40,  40, 180),   # Red       #B42828
-    (200, 200,  60),   # Teal      #3CC8C8
+    ( 20,  20, 255),   # Vivid red
+    ( 20, 200,  20),   # Vivid green
+    (  0, 140, 255),   # Vivid orange
+    (240,  20, 240),   # Vivid magenta
+    (255,  20,  20),   # Vivid blue
+    (  0, 220, 255),   # Vivid yellow
+    (180,   0, 180),   # Vivid purple
 ]
 
 # ── Star placement config ─────────────────────────────────────────────────────
-# Fixed positions as fractions of (face_w, face_h)
-# Rules:
-#   • fy > 0.20  → below forehead hairline
-#   • fy < 0.82  → above chin
-#   • fx 0.12-0.88 → inside face width
-#   • Avoid eye zone: fy 0.28-0.48 with fx 0.25-0.75 (nose bridge + eye area)
+# Clustered on cheeks + nose bridge — matches reference photo aesthetic
 # (pfx, pfy, size_frac, colour_idx, rotation_deg)
+#   pfx: 0.0=left edge  0.5=centre  1.0=right edge
+#   pfy: 0.0=top        0.5=nose    1.0=chin
 _STAR_PLACEMENTS: List[Tuple[float, float, float, int, float]] = [
-    (0.18, 0.22, 0.15, 0,  15),   # forehead left
-    (0.60, 0.20, 0.1, 1, -12),   # forehead right
-    (0.12, 0.56, 0.13, 2,   8),   # left cheek mid
-    (0.88, 0.50, 0.15, 3, -10),   # right cheek mid
-    (0.20, 0.70, 0.09, 4,  20),   # left cheek lower
-    (0.78, 0.68, 0.09, 5, -18),   # right cheek lower
-    (0.42, 0.78, 0.12, 25,  12),   # chin left
-    (0.62, 0.76, 0.09, 1,  -8),   # chin right
+    # ── Left cheek cluster ────────────────────────────────────────────────
+    (0.20, 0.62, 0.11, 2, -15),   # left cheek mid
+    (0.26, 0.72, 0.09, 6,  -8),   # left cheek lower-inner
+
+    # ── Nose bridge / centre ──────────────────────────────────────────────
+    (0.42, 0.47, 0.09, 1,  12),   # nose left
+    (0.50, 0.43, 0.08, 3,  -5),   # nose top centre
+    (0.58, 0.47, 0.09, 5,  18),   # nose right
+
+    # ── Right cheek cluster ───────────────────────────────────────────────
+    (0.80, 0.62, 0.11, 5,  15),   # right cheek mid
+    (0.74, 0.72, 0.09, 0,   8),   # right cheek lower-inner
 ]
 
 # ── Freckle config ────────────────────────────────────────────────────────────
 # Fixed freckle positions as (fx, fy) fractions of face box
-_FRECKLE_POSITIONS: List[Tuple[float, float]] = []
+_FRECKLE_POSITIONS: List[Tuple[float, float]] = [
+    (0.35, 0.48), (0.42, 0.45), (0.50, 0.47), (0.57, 0.45), (0.63, 0.48),
+    (0.38, 0.52), (0.46, 0.50), (0.54, 0.51), (0.61, 0.52),
+    (0.33, 0.44), (0.67, 0.44),
+    (0.40, 0.55), (0.55, 0.56),
+    (0.30, 0.50), (0.70, 0.50),
+]
 
 # Cache: original BGRA + one recoloured BGRA per colour
 _star_base_cache:   Optional[np.ndarray]              = None
