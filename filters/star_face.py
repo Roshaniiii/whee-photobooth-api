@@ -19,13 +19,13 @@ _SRC_ANCHOR_Y: int = 200
 
 # ── Recolor targets (BGR) — bright vivid colours matching reference ───────────
 _STAR_COLOURS: List[Tuple[int, int, int]] = [
-    ( 20,  20, 255),   # Vivid red
-    ( 20, 200,  20),   # Vivid green
-    (  0, 140, 255),   # Vivid orange
-    (240,  20, 240),   # Vivid magenta
-    (255,  20,  20),   # Vivid blue
-    (  0, 220, 255),   # Vivid yellow
-    (180,   0, 180),   # Vivid purple
+    (236,  159, 171),   # Marvelous
+    (202, 153,  171),   # Parrot Pink
+    (113, 85, 122),   # Old Lavender
+    (172,  222, 226),   # Light Blue
+    (184,  53,  86),   # Maroon
+    (139, 68, 92),   # deep Ruby
+    (72, 44, 61),   # Dark Puce
 ]
 
 # ── Star placement config ─────────────────────────────────────────────────────
@@ -48,32 +48,20 @@ _STAR_PLACEMENTS: List[Tuple[float, float, float, int, float]] = [
     (0.74, 0.72, 0.09, 0,   8),   # right cheek lower-inner
 ]
 
-# ── Freckle config ────────────────────────────────────────────────────────────
-# Fixed freckle positions as (fx, fy) fractions of face box
-_FRECKLE_POSITIONS: List[Tuple[float, float]] = [
-    (0.35, 0.48), (0.42, 0.45), (0.50, 0.47), (0.57, 0.45), (0.63, 0.48),
-    (0.38, 0.52), (0.46, 0.50), (0.54, 0.51), (0.61, 0.52),
-    (0.33, 0.44), (0.67, 0.44),
-    (0.40, 0.55), (0.55, 0.56),
-    (0.30, 0.50), (0.70, 0.50),
-]
-
-# Cache: original BGRA + one recoloured BGRA per colour
-_star_base_cache:   Optional[np.ndarray]              = None
-_star_colour_cache: Optional[List[np.ndarray]]        = None
+# Cache
+_star_colour_cache: Optional[List[np.ndarray]] = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 def _build_star_mask(bgr: np.ndarray) -> np.ndarray:
     """
-    Extract star shape as an alpha mask from the blue star PNG.
-    Background is a light grey checkerboard (~175-195 BGR).
+    Extract star shape as alpha mask from the blue star PNG.
+    Background is light grey checkerboard (~175-195 BGR).
     Star is blue (HSV hue 85-130, sat > 60).
-    Returns uint8 alpha channel same size as input.
     """
-    hsv: np.ndarray      = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
-    hue: np.ndarray      = hsv[:, :, 0].astype(np.float32)
-    sat: np.ndarray      = hsv[:, :, 1].astype(np.float32)
+    hsv: np.ndarray = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+    hue: np.ndarray = hsv[:, :, 0].astype(np.float32)
+    sat: np.ndarray = hsv[:, :, 1].astype(np.float32)
 
     hue_mask: np.ndarray = (
         np.clip((hue - 80.0) / 8.0, 0.0, 1.0) *
@@ -81,8 +69,8 @@ def _build_star_mask(bgr: np.ndarray) -> np.ndarray:
     )
     sat_mask: np.ndarray = np.clip((sat - 50.0) / 40.0, 0.0, 1.0)
 
-    alpha_f: np.ndarray  = hue_mask * sat_mask * 255.0
-    alpha: np.ndarray    = np.clip(alpha_f, 0, 255).astype(np.uint8)
+    alpha_f: np.ndarray = hue_mask * sat_mask * 255.0
+    alpha: np.ndarray   = np.clip(alpha_f, 0, 255).astype(np.uint8)
     alpha = cv2.GaussianBlur(alpha, (5, 5), sigmaX=1.5)
     return alpha
 
@@ -91,17 +79,16 @@ def _make_coloured_star(bgr: np.ndarray, alpha: np.ndarray,
                         colour_bgr: Tuple[int, int, int]) -> np.ndarray:
     """
     Recolour the star to a solid colour while keeping its alpha shape.
+    70% flat colour + 30% luminance texture from original.
     Returns a BGRA uint8 image.
     """
     h, w = bgr.shape[:2]
     coloured: np.ndarray = np.zeros((h, w, 3), dtype=np.uint8)
     coloured[:] = colour_bgr
 
-    # Blend original texture slightly into the flat colour for a natural look
-    # 70% flat colour + 30% luminance texture from original
-    gray: np.ndarray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
-    lum: np.ndarray  = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR).astype(np.float32)
-    col: np.ndarray  = coloured.astype(np.float32)
+    gray: np.ndarray  = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+    lum: np.ndarray   = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR).astype(np.float32)
+    col: np.ndarray   = coloured.astype(np.float32)
     mixed: np.ndarray = np.clip(col * 0.70 + lum * 0.30, 0, 255).astype(np.uint8)
 
     b, g, r = cv2.split(mixed)
@@ -113,7 +100,7 @@ def _load_star_variants() -> List[np.ndarray]:
     Load star.png once, extract alpha, generate one BGRA variant per colour.
     Cached after first call.
     """
-    global _star_base_cache, _star_colour_cache
+    global _star_colour_cache
     if _star_colour_cache is not None:
         return _star_colour_cache
 
@@ -125,7 +112,7 @@ def _load_star_variants() -> List[np.ndarray]:
             .format(_ASSET_PATH)
         )
 
-    alpha: np.ndarray = _build_star_mask(bgr)
+    alpha: np.ndarray  = _build_star_mask(bgr)
     _star_colour_cache = [
         _make_coloured_star(bgr, alpha, c) for c in _STAR_COLOURS
     ]
@@ -148,12 +135,10 @@ def _overlay_bgra(
     if size < 4:
         return base
 
-    # Resize
     resized: np.ndarray = cv2.resize(
         overlay, (size, size), interpolation=cv2.INTER_AREA
     )
 
-    # Rotate around centre
     if abs(angle) > 0.5:
         M: np.ndarray = cv2.getRotationMatrix2D((size / 2, size / 2), angle, 1.0)
         resized = cv2.warpAffine(
@@ -168,19 +153,21 @@ def _overlay_bgra(
     x: int  = cx - size // 2
     y: int  = cy - size // 2
 
-    dst_x1: int = max(x, 0);       dst_y1: int = max(y, 0)
-    dst_x2: int = min(x + size, fw); dst_y2: int = min(y + size, fh)
+    dst_x1: int = max(x, 0)
+    dst_y1: int = max(y, 0)
+    dst_x2: int = min(x + size, fw)
+    dst_y2: int = min(y + size, fh)
     if dst_x2 <= dst_x1 or dst_y2 <= dst_y1:
         return base
 
-    src_x1: int = dst_x1 - x;  src_y1: int = dst_y1 - y
+    src_x1: int = dst_x1 - x
+    src_y1: int = dst_y1 - y
     src_x2: int = src_x1 + (dst_x2 - dst_x1)
     src_y2: int = src_y1 + (dst_y2 - dst_y1)
 
-    result: np.ndarray = base.copy()
-    roi:    np.ndarray = result[dst_y1:dst_y2, dst_x1:dst_x2].astype(np.float32)
-    patch:  np.ndarray = resized[src_y1:src_y2, src_x1:src_x2]
-
+    result: np.ndarray    = base.copy()
+    roi:    np.ndarray    = result[dst_y1:dst_y2, dst_x1:dst_x2].astype(np.float32)
+    patch:  np.ndarray    = resized[src_y1:src_y2, src_x1:src_x2]
     patch_bgr: np.ndarray = patch[:, :, :3].astype(np.float32)
     patch_a:   np.ndarray = patch[:, :, 3:4].astype(np.float32) / 255.0 * float(opacity)
 
@@ -189,54 +176,22 @@ def _overlay_bgra(
     return result
 
 
-def _apply_freckles(
-    img: np.ndarray,
-    fx: int, fy: int, fw: int, fh: int,
-) -> np.ndarray:
-    """
-    Draw soft brown freckle dots scattered across the nose/cheek area.
-    Fixed positions so they don't flicker between frames.
-    """
-    result: np.ndarray = img.copy()
-    freckle_colour: Tuple[int, int, int] = (55, 80, 120)  # warm brown BGR
-    freckle_r: int = max(2, int(fw * 0.012))              # radius scales with face
-
-    overlay: np.ndarray = result.copy()
-    for (pfx, pfy) in _FRECKLE_POSITIONS:
-        cx: int = fx + int(fw * pfx)
-        cy: int = fy + int(fh * pfy)
-        cv2.circle(overlay, (cx, cy), freckle_r, freckle_colour, -1)
-        # Slightly larger faint outer ring for softness
-        cv2.circle(overlay, (cx, cy), freckle_r + 1, freckle_colour, 1)
-
-    # Blend freckles at low opacity — subtle, natural
-    result = cv2.addWeighted(result, 0.72, overlay, 0.28, 0)
-    return result
-
-
 # ─────────────────────────────────────────────────────────────────────────────
 def apply_star_face(img: np.ndarray, star_opacity: float = 0.92) -> np.ndarray:
     """
-    Star Face filter — scatters coloured star stickers across the face,
-    adds a medium pink tint, and draws soft freckles on the nose/cheeks.
+    Star Face filter — scatters coloured star stickers on cheeks and nose.
 
     Pipeline:
       1. Detect largest face with Haar cascade.
-      2. Apply medium pink tint inside face box.
-      3. Draw freckles on nose + cheek region.
-      4. Load star.png → generate 7 recoloured BGRA variants (cached).
-      5. Place 12 stars at fixed anatomical positions (no flicker).
-         Each star has a unique: colour, size, rotation angle.
-
-    Stars are placed at FIXED fractional positions within the face box
-    so they sit still on the face — no time-based animation.
+      2. Load star.png → generate 7 recoloured BGRA variants (cached).
+      3. Place stars at fixed anatomical positions (no flicker).
 
     Args:
         img          : BGR uint8 image (H x W x 3)
-        star_opacity : star sticker opacity 0.0-1.0 (default 0.92 = crisp)
+        star_opacity : star sticker opacity 0.0-1.0 (default 0.92)
 
     Returns:
-        BGR uint8 image with stars, pink tint, and freckles applied.
+        BGR uint8 image with stars applied.
         Returns copy of original if no face detected.
     """
     face_cascade: cv2.CascadeClassifier = cv2.CascadeClassifier(_FACE_XML)
@@ -259,21 +214,16 @@ def apply_star_face(img: np.ndarray, star_opacity: float = 0.92) -> np.ndarray:
     fw: int = int(face_box[2])
     fh: int = int(face_box[3])
 
-    # ── 1. Freckles ───────────────────────────────────────────────────────────
-    result: np.ndarray = _apply_freckles(img, fx, fy, fw, fh)
-
-    # ── 3. Load star variants ─────────────────────────────────────────────────
+    # ── Load star variants ────────────────────────────────────────────────────
     star_variants: List[np.ndarray] = _load_star_variants()
 
-    # ── 4. Place stars at fixed positions ────────────────────────────────────
+    # ── Place stars at fixed positions ────────────────────────────────────────
+    result: np.ndarray = img.copy()
     for (pfx, pfy, size_frac, colour_idx, rotation) in _STAR_PLACEMENTS:
-        cx: int   = fx + int(fw * pfx)
-        cy: int   = fy + int(fh * pfy)
-        size: int = max(8, int(fw * size_frac))
-        variant   = star_variants[colour_idx % len(star_variants)]
-
-        result = _overlay_bgra(
-            result, variant, cx, cy, size, rotation, star_opacity
-        )
+        cx:      int = fx + int(fw * pfx)
+        cy:      int = fy + int(fh * pfy)
+        size:    int = max(8, int(fw * size_frac))
+        variant      = star_variants[colour_idx % len(star_variants)]
+        result = _overlay_bgra(result, variant, cx, cy, size, rotation, star_opacity)
 
     return result
