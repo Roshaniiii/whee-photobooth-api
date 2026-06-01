@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="33f043e4-9a32-42a2-9f25-f2e645a5e768" name="Changes" comment="" />
+    <list default="true" id="33f043e4-9a32-42a2-9f25-f2e645a5e768" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/assets/backgrounds/bg1.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/backgrounds/bg2.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/assets/backgrounds/bg3.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/filters/background_replace.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/cat_ears.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/cat_ears.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/filters/star_face.py" beforeDir="false" afterPath="$PROJECT_DIR$/filters/star_face.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -32,27 +41,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/rg076/PycharmProjects/PythonProject/y2k-photobooth-api/assets&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.main.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/Users/rg076/PycharmProjects/PythonProject/y2k-photobooth-api/assets/backgrounds",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\rg076\PycharmProjects\PythonProject\y2k-photobooth-api\assets\backgrounds" />
       <recent name="C:\Users\rg076\PycharmProjects\PythonProject\y2k-photobooth-api\assets" />
     </key>
   </component>
@@ -80,7 +90,9 @@
       <workItem from="1779647317328" duration="4737000" />
       <workItem from="1779799069063" duration="3601000" />
       <workItem from="1779991945843" duration="1480000" />
-      <workItem from="1780077965491" duration="725000" />
+      <workItem from="1780077965491" duration="1047000" />
+      <workItem from="1780155384933" duration="7348000" />
+      <workItem from="1780244967359" duration="4603000" />
     </task>
     <servers />
   </component>

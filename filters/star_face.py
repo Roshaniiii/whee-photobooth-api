@@ -17,35 +17,35 @@ _SRC_H:        int = 395
 _SRC_ANCHOR_X: int = 198
 _SRC_ANCHOR_Y: int = 200
 
-# ── Recolor targets (BGR) — bright vivid colours matching reference ───────────
+# ── Recolor targets (BGR) — purple + pink focus matching reference ────────────
 _STAR_COLOURS: List[Tuple[int, int, int]] = [
-    (236,  159, 171),   # Marvelous
-    (202, 153,  171),   # Parrot Pink
-    (113, 85, 122),   # Old Lavender
-    (172,  222, 226),   # Light Blue
-    (184,  53,  86),   # Maroon
-    (139, 68, 92),   # deep Ruby
-    (72, 44, 61),   # Dark Puce
+    (180,  80, 120),   # Soft purple   #7850B4
+    (160,  80, 200),   # Lavender      #C850A0
+    (180, 105, 220),   # Pink          #DC69B4
+    (130,  50, 180),   # Deep purple   #B43282
+    (200, 130, 230),   # Light pink    #E682C8
+    (150,  60, 160),   # Violet        #A03C96
+    (210, 150, 240),   # Pale pink     #F096D2
 ]
 
 # ── Star placement config ─────────────────────────────────────────────────────
-# Clustered on cheeks + nose bridge — matches reference photo aesthetic
+# 3 stars on each cheek in a *.* triangle pattern (two bottom, one top-centre)
 # (pfx, pfy, size_frac, colour_idx, rotation_deg)
 #   pfx: 0.0=left edge  0.5=centre  1.0=right edge
-#   pfy: 0.0=top        0.5=nose    1.0=chin
+#   pfy: 0.0=top        0.5=mid     1.0=chin
 _STAR_PLACEMENTS: List[Tuple[float, float, float, int, float]] = [
-    # ── Left cheek cluster ────────────────────────────────────────────────
-    (0.20, 0.62, 0.11, 2, -15),   # left cheek mid
-    (0.26, 0.72, 0.09, 6,  -8),   # left cheek lower-inner
+    # ── Left cheek  *.*  (top-centre, bottom-left, bottom-right) ─────────
+    (0.20, 0.54, 0.08, 2,   0),   # left cheek top-centre
+    (0.27, 0.62, 0.08, 6,   0),   # left cheek bottom-right
 
-    # ── Nose bridge / centre ──────────────────────────────────────────────
+    # ── Nose bridge — unchanged size, colour updated ───────────────────────
     (0.42, 0.47, 0.09, 1,  12),   # nose left
     (0.50, 0.43, 0.08, 3,  -5),   # nose top centre
     (0.58, 0.47, 0.09, 5,  18),   # nose right
 
-    # ── Right cheek cluster ───────────────────────────────────────────────
-    (0.80, 0.62, 0.11, 5,  15),   # right cheek mid
-    (0.74, 0.72, 0.09, 0,   8),   # right cheek lower-inner
+    # ── Right cheek  *.*  (top-centre, bottom-left, bottom-right) ────────
+    (0.80, 0.54, 0.08, 4,   0),   # right cheek top-centre
+    (0.73, 0.62, 0.08, 5,   0),   # right cheek bottom-left
 ]
 
 # Cache
