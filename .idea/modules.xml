@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/y2k-photobooth-api.iml" filepath="$PROJECT_DIR$/.idea/y2k-photobooth-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/whee-photobooth-api.iml" filepath="$PROJECT_DIR$/.idea/whee-photobooth-api.iml" />
     </modules>
   </component>
 </project>

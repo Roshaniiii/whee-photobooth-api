@@ -1,0 +1,5 @@
+{
+  "npm.autoDetect": "on",
+  "npm.packageManager": "npm",
+  "eslint.workingDirectories": ["whee-photobooth"]
+}
