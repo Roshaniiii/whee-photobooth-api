@@ -29,7 +29,7 @@ JPEG_QUALITY_FULL: int = int(os.getenv("JPEG_QUALITY_FULL", "90"))
 # Comma-separated origins, e.g. https://whee.example.com,http://localhost:5173
 _cors_raw: str = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173",
+    "http://localhost:5173,http://localhost:4173,https://whee-photobooth.vercel.app",
 )
 CORS_ORIGINS: list[str] = [o.strip() for o in _cors_raw.split(",") if o.strip()]
 

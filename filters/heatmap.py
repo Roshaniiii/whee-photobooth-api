@@ -15,7 +15,7 @@ def apply_heatmap(img: np.ndarray) -> np.ndarray:
       1. Convert to grayscale (luminance = heat proxy)
       2. Apply COLORMAP_JET  — OpenCV's built-in thermal palette
          (blue=cold → cyan → green → yellow → red=hot)
-      3. Boost saturation so colours are vivid like the reference
+      3. Boost saturation so colors are vivid like the reference
       4. Slight blur before mapping to smooth thermal gradients
 
     Args:

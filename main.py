@@ -4,7 +4,7 @@ import logging
 
 import cv2
 import numpy as np
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -38,13 +38,12 @@ app = FastAPI(title="Whee Photobooth API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-_use_wildcard_cors = len(CORS_ORIGINS) == 1 and CORS_ORIGINS[0] == "*"
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
-    allow_credentials=not _use_wildcard_cors,
-    allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type"],
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Base64 expands ~4/3; add small padding slack
@@ -143,6 +142,20 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "ok", "environment": ENVIRONMENT}
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "environment": ENVIRONMENT}
+
+
+# ── Startup log ───────────────────────────────────────────────
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Whee Photobooth API started")
+    logger.info("Environment: %s", ENVIRONMENT)
+    logger.info("CORS origins: %s", CORS_ORIGINS)
+    logger.info("Allowed filters: %s", ALLOWED_FILTERS)
 
 
 @app.post("/apply-filter")
