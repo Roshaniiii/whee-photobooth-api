@@ -40,13 +40,12 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://whee-photobooth.vercel.app"],
     allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
-# Base64 expands ~4/3; add small padding slack
 _MAX_B64_CHARS = (MAX_IMAGE_BYTES * 4 // 3) + 16
 
 
@@ -60,25 +59,19 @@ class FilterRequest(BaseModel):
     def validate_image(cls, value: str) -> str:
         if not value or not value.strip():
             raise ValueError("image is required")
-
         cleaned = value.strip()
         if cleaned.startswith("data:"):
             _, _, cleaned = cleaned.partition(",")
-
         if len(cleaned) > _MAX_B64_CHARS:
             raise ValueError(f"image exceeds max size ({MAX_IMAGE_BYTES} bytes decoded)")
-
         try:
             decoded = base64.b64decode(cleaned, validate=True)
         except (binascii.Error, ValueError) as exc:
             raise ValueError("image must be valid base64") from exc
-
         if len(decoded) > MAX_IMAGE_BYTES:
             raise ValueError(f"image exceeds max size ({MAX_IMAGE_BYTES} bytes)")
-
         if len(decoded) < 100:
             raise ValueError("image payload is too small to be a valid JPEG")
-
         return cleaned
 
     @field_validator("filter")
@@ -117,7 +110,6 @@ def encode_image(img: np.ndarray, *, preview: bool) -> str:
 
 def apply_filter_to_image(img: np.ndarray, request: FilterRequest) -> np.ndarray:
     f = request.filter
-
     if f == "blush":
         return apply_blush(img, opacity=0.70 if request.preview else 0.85)
     if f == "cat_ears":
@@ -130,7 +122,6 @@ def apply_filter_to_image(img: np.ndarray, request: FilterRequest) -> np.ndarray
         return apply_pixel(img)
     if f == "heatmap":
         return apply_heatmap(img)
-
     raise HTTPException(status_code=400, detail=f"Unknown filter: {f}")
 
 
@@ -144,12 +135,6 @@ def health():
     return {"status": "ok", "environment": ENVIRONMENT}
 
 
-@app.get("/health")
-def health():
-    return {"status": "ok", "environment": ENVIRONMENT}
-
-
-# ── Startup log ───────────────────────────────────────────────
 @app.on_event("startup")
 async def startup_event():
     logger.info("Whee Photobooth API started")
@@ -158,21 +143,23 @@ async def startup_event():
     logger.info("Allowed filters: %s", ALLOWED_FILTERS)
 
 
+@app.options("/apply-filter")
+def apply_filter_preflight():
+    return Response(status_code=200)
+
+
 @app.post("/apply-filter")
 @limiter.limit(RATE_LIMIT)
 def apply_filter(request: Request, body: FilterRequest):
     img = decode_image(body.image)
-
     h, w = img.shape[:2]
     if w > MAX_IMAGE_DIMENSION or h > MAX_IMAGE_DIMENSION:
         raise HTTPException(
             status_code=400,
             detail=f"Image dimensions exceed max {MAX_IMAGE_DIMENSION}px",
         )
-
     max_width = PREVIEW_MAX_WIDTH if body.preview else FULL_MAX_WIDTH
     img = resize_to_max_width(img, max_width)
-
     try:
         img = apply_filter_to_image(img, body)
     except HTTPException:
@@ -180,5 +167,4 @@ def apply_filter(request: Request, body: FilterRequest):
     except Exception:
         logger.exception("Filter processing failed: filter=%s", body.filter)
         raise HTTPException(status_code=500, detail="Filter processing failed") from None
-
     return {"image": encode_image(img, preview=body.preview)}

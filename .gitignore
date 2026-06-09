@@ -1,4 +1,8 @@
 .venv/
+venv/
 __pycache__/
 *.pyc
 .env
+assets/blush.png
+assets/cat_ears.png
+assets/hearts.png
