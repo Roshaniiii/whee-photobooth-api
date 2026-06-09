@@ -19,13 +19,14 @@ _SRC_ANCHOR_Y: int = 200
 
 # ── Recolor targets (BGR) — purple + pink focus matching reference ────────────
 _STAR_COLOURS: List[Tuple[int, int, int]] = [
-    (180,  80, 120),   # Soft purple   #7850B4
-    (160,  80, 200),   # Lavender      #C850A0
-    (180, 105, 220),   # Pink          #DC69B4
-    (130,  50, 180),   # Deep purple   #B43282
-    (200, 130, 230),   # Light pink    #E682C8
-    (150,  60, 160),   # Violet        #A03C96
-    (210, 150, 240),   # Pale pink     #F096D2
+    # HEX       RGB              BGR (swap R and B)
+    (221, 169, 255),  # #ffa9dd  → BGR: (221, 169, 255)
+    (  0, 183, 254),  # #feb700  → BGR: (  0, 183, 254)
+    (111, 226, 255),  # #ffe26f  → BGR: (111, 226, 255)
+    ( 47, 224, 196),  # #c4e02f  → BGR: ( 47, 224, 196)
+    (217, 213, 124),  # #7cd5d9  → BGR: (217, 213, 124)
+    (255, 173, 153),  # #99adff  → BGR: (255, 173, 153)
+    (248, 190, 231),  # #e7bef8  → BGR: (248, 190, 231)
 ]
 
 # ── Star placement config ─────────────────────────────────────────────────────
@@ -39,9 +40,9 @@ _STAR_PLACEMENTS: List[Tuple[float, float, float, int, float]] = [
     (0.27, 0.62, 0.08, 6,   0),   # left cheek bottom-right
 
     # ── Nose bridge — unchanged size, colour updated ───────────────────────
-    (0.42, 0.47, 0.09, 1,  12),   # nose left
-    (0.50, 0.43, 0.08, 3,  -5),   # nose top centre
-    (0.58, 0.47, 0.09, 5,  18),   # nose right
+    (0.42, 0.47, 0.05, 1,  12),   # nose left
+    (0.50, 0.43, 0.05, 3,  -5),   # nose top centre
+    (0.58, 0.47, 0.05, 5,  18),   # nose right
 
     # ── Right cheek  *.*  (top-centre, bottom-left, bottom-right) ────────
     (0.80, 0.54, 0.08, 4,   0),   # right cheek top-centre
@@ -89,7 +90,7 @@ def _make_coloured_star(bgr: np.ndarray, alpha: np.ndarray,
     gray: np.ndarray  = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
     lum: np.ndarray   = cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR).astype(np.float32)
     col: np.ndarray   = coloured.astype(np.float32)
-    mixed: np.ndarray = np.clip(col * 0.70 + lum * 0.30, 0, 255).astype(np.uint8)
+    mixed: np.ndarray = np.clip(col * 1.0, 0, 255).astype(np.uint8)
 
     b, g, r = cv2.split(mixed)
     return cv2.merge([b, g, r, alpha])
