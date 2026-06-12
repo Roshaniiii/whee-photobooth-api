@@ -40,7 +40,13 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://wheephotobooth.site","https://www.wheephotobooth.site""https://whee-photobooth.vercel.app"],
+    allow_origins=[
+        "https://wheephotobooth.site",
+        "https://www.wheephotobooth.site", 
+        "https://whee-photobooth.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:4173",
+    ],
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
