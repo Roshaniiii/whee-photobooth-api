@@ -1,4 +1,6 @@
-# Whee Photobooth API 🎨
+# Whee Photobooth API 
+
+🔗 **Live site:** [wheephotobooth.site](https://wheephotobooth.site)
 
 FastAPI backend for Whee Photobooth. Applies image filters using OpenCV and returns processed frames to the frontend.
 
